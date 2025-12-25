@@ -43,12 +43,18 @@ public class PlayerLook : MonoBehaviour
 
     void HandleCameraHeight()
     {
-        float targetHeight = movement != null && movement.enabled && 
-                             Input.GetKey(KeyCode.C) 
-                             ? crouchCameraHeight 
-                             : standCameraHeight;
+        if (movement == null) return;
 
-        currentCameraHeight = Mathf.Lerp(currentCameraHeight, targetHeight, Time.deltaTime * cameraSmooth);
+        float targetHeight = movement.IsCrouching 
+            ? crouchCameraHeight 
+            : standCameraHeight;
+
+        currentCameraHeight = Mathf.Lerp(
+            currentCameraHeight, 
+            targetHeight, 
+            Time.deltaTime * cameraSmooth
+        );
+
         transform.localPosition = new Vector3(0, currentCameraHeight, 0);
     }
 }

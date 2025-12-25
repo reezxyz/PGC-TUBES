@@ -12,7 +12,8 @@ public class PlayerMovement : MonoBehaviour
 
     private CharacterController controller;
     private Vector3 velocity;
-    private bool isCrouching;
+    public bool IsCrouching { get; private set; }
+    private bool insideVent;
 
     void Start()
     {
@@ -30,7 +31,7 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleMovement()
     {
-        float speed = isCrouching ? crouchSpeed : walkSpeed;
+        float speed = IsCrouching ? crouchSpeed : walkSpeed;
 
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
@@ -43,9 +44,14 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.C))
         {
-            isCrouching = !isCrouching;
+            // Jika player sedang di dalam vent dan MAU berdiri → TOLAK
+            if (insideVent && IsCrouching)
+                return;
 
-            if (isCrouching)
+            // Toggle crouch
+            IsCrouching = !IsCrouching;
+
+            if (IsCrouching)
             {
                 controller.height = crouchHeight;
                 controller.center = new Vector3(0, crouchHeight / 2f, 0);
@@ -67,5 +73,17 @@ public class PlayerMovement : MonoBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Vent"))
+            insideVent = true;
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Vent"))
+            insideVent = false;
     }
 }
