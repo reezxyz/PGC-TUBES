@@ -1,15 +1,22 @@
 using UnityEngine;
 
-public class FlashlightPickup : MonoBehaviour
+public class FlashlightPickup : MonoBehaviour, IInteractable
 {
-    void OnTriggerEnter(Collider other)
+    public string interactText = "Press E to take flashlight";
+
+    public void Interact()
     {
-        PlayerInventory inventory = other.GetComponent<PlayerInventory>();
+        PlayerInventory inventory = FindObjectOfType<PlayerInventory>();
 
         if (inventory != null)
         {
             inventory.PickupFlashlight();
             Destroy(gameObject);
         }
+    }
+
+    public string GetInteractText()
+    {
+        return interactText;
     }
 }
