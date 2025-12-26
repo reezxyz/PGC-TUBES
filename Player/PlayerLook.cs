@@ -25,8 +25,13 @@ public class PlayerLook : MonoBehaviour
 
     void Update()
     {
-        HandleMouseLook();
+        // HandleMouseLook();
         HandleCameraHeight();
+    }
+
+    void LateUpdate()
+    {
+        HandleMouseLook();
     }
 
     void HandleMouseLook()
