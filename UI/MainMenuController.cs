@@ -31,7 +31,7 @@ public class MainMenuController : MonoBehaviour
             yield return null;
         }
 
-        SceneManager.LoadScene("Level1_Orientation");
+        SceneManager.LoadScene("Cutscene_Intro");
     }
 
     public void QuitGame()
