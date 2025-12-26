@@ -6,7 +6,7 @@ public class ValveHold : MonoBehaviour, IInteractable
     public Transform valveHandle;
 
     public float maxRotateAngle = -120f;
-    public float holdDuration = 2f;
+    public float holdDuration = 5f;
     public float returnSpeed = 0.5f;
     public ValveProgressUI progressUI;
 
@@ -15,7 +15,9 @@ public class ValveHold : MonoBehaviour, IInteractable
     bool isHolding = false;
     bool isReturning = false;
     bool uiLocked = false;
-
+    public AudioSource valveAudio;
+    public AudioClip valveTurnLoop;
+    public AudioClip valveComplete;
     Quaternion startRotation;
     Quaternion endRotation;
 
@@ -33,6 +35,8 @@ public class ValveHold : MonoBehaviour, IInteractable
         {
             holdProgress += Time.deltaTime / holdDuration;
             holdProgress = Mathf.Clamp01(holdProgress);
+
+            NoiseSystem.Instance.MakeNoise(transform.position, 4f * holdProgress);
 
             if (holdProgress >= 1f)
             {
@@ -58,6 +62,13 @@ public class ValveHold : MonoBehaviour, IInteractable
 
     public void Interact()
     {
+        if (!valveAudio.isPlaying)
+        {
+            valveAudio.clip = valveTurnLoop;
+            valveAudio.loop = true;
+            valveAudio.Play();
+        }
+
         if (isActivated) return;
 
         isHolding = true;
@@ -93,6 +104,9 @@ public class ValveHold : MonoBehaviour, IInteractable
 
         uiLocked = true;
 
+        valveAudio.Stop();
+        valveAudio.PlayOneShot(valveComplete);
+
         if (progressUI != null)
             progressUI.SetVisible(false);
 
@@ -104,6 +118,8 @@ public class ValveHold : MonoBehaviour, IInteractable
     {
         isHolding = false;
         isReturning = true;
+
+        valveAudio.Stop();
     }
 
     public string GetInteractText()
