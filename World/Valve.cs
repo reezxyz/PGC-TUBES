@@ -8,11 +8,13 @@ public class ValveHold : MonoBehaviour, IInteractable
     public float maxRotateAngle = -120f;
     public float holdDuration = 2f;
     public float returnSpeed = 0.5f;
+    public ValveProgressUI progressUI;
 
     float holdProgress = 0f;
     bool isActivated = false;
     bool isHolding = false;
     bool isReturning = false;
+    bool uiLocked = false;
 
     Quaternion startRotation;
     Quaternion endRotation;
@@ -48,6 +50,9 @@ public class ValveHold : MonoBehaviour, IInteractable
             }
         }
 
+        if (progressUI != null && !uiLocked)
+        progressUI.SetProgress(holdProgress);
+
         UpdateValveRotation();
     }
 
@@ -57,14 +62,17 @@ public class ValveHold : MonoBehaviour, IInteractable
 
         isHolding = true;
         isReturning = false;
+
+        if (progressUI != null)
+            progressUI.SetVisible(true);
     }
+
 
     void LateUpdate()
     {
         if (isHolding && Input.GetKeyUp(KeyCode.E))
         {
-            isHolding = false;
-            isReturning = true;
+            CancelHold();
         }
     }
 
@@ -83,8 +91,19 @@ public class ValveHold : MonoBehaviour, IInteractable
         holdProgress = 1f;
         valveHandle.localRotation = endRotation;
 
+        uiLocked = true;
+
+        if (progressUI != null)
+            progressUI.SetVisible(false);
+
         if (targetGas != null)
             targetGas.ToggleGas();
+    }
+
+    void CancelHold()
+    {
+        isHolding = false;
+        isReturning = true;
     }
 
     public string GetInteractText()
