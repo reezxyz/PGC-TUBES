@@ -8,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
     public float gravity = -9.8f;
 
     public float standHeight = 1.8f;
-    public float crouchHeight = 1.0f;
+    public float crouchHeight = 0.7f;
 
     private CharacterController controller;
     private Vector3 velocity;

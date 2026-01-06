@@ -6,7 +6,7 @@ public class PlayerLook : MonoBehaviour
     public Transform playerBody;
 
     public float standCameraHeight = 1.6f;
-    public float crouchCameraHeight = 1.0f;
+    public float crouchCameraHeight = 0.7f;
     public float cameraSmooth = 8f;
 
     float xRotation = 0f;
