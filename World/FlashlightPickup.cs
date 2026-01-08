@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class FlashlightPickup : MonoBehaviour, IInteractable
 {
-    public string interactText = "Press E to take flashlight";
+    public string interactText = "Press E to take items";
 
     public void Interact()
     {
