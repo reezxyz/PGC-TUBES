@@ -2,30 +2,52 @@ using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    public float interactDistance = 3f;
-    public KeyCode interactKey = KeyCode.E;
+    public float distance = 3f;
+    public float radius = 0.25f;
+    public LayerMask interactMask;
+
+    IInteractable current;
+    Camera cam;
+
+    void Start()
+    {
+        cam = Camera.main;
+    }
 
     void Update()
     {
-        if (Input.GetKeyDown(interactKey))
-        {
-            TryInteract();
-        }
+        Detect();
     }
 
-    void TryInteract()
+    void Detect()
     {
-        Ray ray = new Ray(transform.position, transform.forward);
-        RaycastHit hit;
+        IInteractable next = null;
 
-        if (Physics.Raycast(ray, out hit, interactDistance))
+        if (Physics.SphereCast(
+            cam.transform.position,
+            radius,
+            cam.transform.forward,
+            out RaycastHit hit,
+            distance,
+            interactMask
+        ))
         {
-            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-
-            if (interactable != null)
-            {
-                interactable.Interact();
-            }
+            next = hit.collider.GetComponentInParent<IInteractable>();
         }
+
+        if (next != current)
+        {
+            current?.OnHoverExit();
+            next?.OnHoverEnter();
+            current = next;
+        }
+
+        current?.Interact();
+        if (next != null)
+        {
+            Debug.Log("Hover: " + next);
+        }
+
     }
+    
 }

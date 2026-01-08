@@ -1,5 +1,6 @@
 public interface IInteractable
 {
     void Interact();
-    string GetInteractText();
+    void OnHoverEnter();
+    void OnHoverExit();
 }

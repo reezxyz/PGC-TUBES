@@ -1,32 +1,29 @@
 using UnityEngine;
 
-public class ValveHold : MonoBehaviour, IInteractable
+public class WoodBoardInteract : MonoBehaviour, IInteractable
 {
-    [Header("Valve Settings")]
-    public Transform valveHandle;
-    public float maxRotateAngle = -120f;
-    public float holdDuration = 5f;
-    public float returnSpeed = 0.6f;
+    [Header("Requirements")]
+    public bool requiresPipe = true;          // tutorial: butuh pipa besi
+    public float holdDuration = 3f;
+    public float returnSpeed = 0.8f;
 
-    [Header("Gas")]
-    public GasController targetGas;
+    [Header("Physics")]
+    public Rigidbody boardRigidbody;           // aktif saat board lepas
+    public Collider boardCollider;
 
     [Header("UI")]
     public ProgressUI progressUI;
     InteractionTextSpawner textSpawner;
 
-    [Header("Audio")]
+    [Header("Audio (Optional)")]
     public AudioSource audioSource;
-    public AudioClip valveTurnLoop;
-    public AudioClip valveComplete;
+    public AudioClip pryLoop;
+    public AudioClip boardBreak;
 
     float holdProgress = 0f;
-    bool isActivated = false;
+    bool isRemoved = false;
     bool isHolding = false;
     bool isReturning = false;
-
-    Quaternion startRotation;
-    Quaternion endRotation;
 
     void Awake()
     {
@@ -35,17 +32,25 @@ public class ValveHold : MonoBehaviour, IInteractable
 
     void Start()
     {
-        startRotation = valveHandle.localRotation;
-        endRotation = Quaternion.Euler(0, 0, maxRotateAngle) * startRotation;
-
         if (progressUI != null)
             progressUI.SetVisible(false);
+
+        if (boardRigidbody != null)
+            boardRigidbody.isKinematic = true;
     }
 
     // DIPANGGIL SETIAP FRAME SAAT DI-HOVER
     public void Interact()
     {
-        if (isActivated) return;
+        if (isRemoved) return;
+
+        // Cek syarat item (pipa)
+        if (requiresPipe)
+        {
+            PlayerInventory inv = FindObjectOfType<PlayerInventory>();
+            if (inv == null || !inv.hasPipe)
+                return;
+        }
 
         if (Input.GetKey(KeyCode.E))
         {
@@ -59,27 +64,31 @@ public class ValveHold : MonoBehaviour, IInteractable
 
     void Update()
     {
-        if (isActivated) return;
+        if (isRemoved) return;
 
         if (isHolding)
         {
             holdProgress += Time.deltaTime / holdDuration;
             holdProgress = Mathf.Clamp01(holdProgress);
 
+            progressUI.SetProgress(holdProgress);
+
             if (holdProgress >= 1f)
-                CompleteValve();
+                RemoveBoard();
         }
         else if (isReturning)
         {
             holdProgress -= Time.deltaTime * returnSpeed;
             holdProgress = Mathf.Clamp01(holdProgress);
 
+            progressUI.SetProgress(holdProgress);
+
             if (holdProgress <= 0f)
                 isReturning = false;
         }
-
-        UpdateVisuals();
+        // ⛔ JANGAN panggil SetProgress saat idle / hover saja
     }
+
 
     void StartHold()
     {
@@ -91,7 +100,7 @@ public class ValveHold : MonoBehaviour, IInteractable
 
         if (audioSource && !audioSource.isPlaying)
         {
-            audioSource.clip = valveTurnLoop;
+            audioSource.clip = pryLoop;
             audioSource.loop = true;
             audioSource.Play();
         }
@@ -108,28 +117,16 @@ public class ValveHold : MonoBehaviour, IInteractable
             audioSource.Stop();
     }
 
-    void UpdateVisuals()
+    void RemoveBoard()
     {
-        if (progressUI != null)
-            progressUI.SetProgress(holdProgress);
-
-        valveHandle.localRotation =
-            Quaternion.Lerp(startRotation, endRotation, holdProgress);
-    }
-
-    void CompleteValve()
-    {
-        isActivated = true;
+        isRemoved = true;
         isHolding = false;
         isReturning = false;
-
-        holdProgress = 1f;
-        valveHandle.localRotation = endRotation;
 
         if (audioSource)
         {
             audioSource.Stop();
-            audioSource.PlayOneShot(valveComplete);
+            if (boardBreak) audioSource.PlayOneShot(boardBreak);
         }
 
         if (progressUI != null)
@@ -138,13 +135,23 @@ public class ValveHold : MonoBehaviour, IInteractable
         if (textSpawner != null)
             textSpawner.Hide();
 
-        if (targetGas != null)
-            targetGas.ToggleGas();
+        // Aktifkan physics (board jatuh)
+        if (boardRigidbody != null)
+        {
+            boardRigidbody.isKinematic = false;
+            boardRigidbody.AddForce(transform.forward * 1.5f, ForceMode.Impulse);
+        }
+
+        if (boardCollider != null)
+            boardCollider.enabled = false;
+
+        // (Opsional) bunyi/noise
+        // NoiseSystem.Instance.MakeNoise(transform.position, 5f);
     }
 
     public void OnHoverEnter()
     {
-        if (isActivated) return;
+        if (isRemoved) return;
 
         if (textSpawner != null)
             textSpawner.Show();
@@ -152,14 +159,13 @@ public class ValveHold : MonoBehaviour, IInteractable
 
     public void OnHoverExit()
     {
-        if (isActivated) return;
+        if (isRemoved) return;
 
         StopHold();
 
         if (textSpawner != null)
             textSpawner.Hide();
 
-        if (progressUI != null)
-            progressUI.SetVisible(false);
+        // ⛔ JANGAN sentuh progressUI di sini
     }
 }

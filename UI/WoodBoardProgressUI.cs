@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ValveProgressUI : MonoBehaviour
+public class WoodBoardProgressUI : MonoBehaviour
 {
     public Image fillImage;
     public CanvasGroup canvasGroup;
@@ -14,8 +14,6 @@ public class ValveProgressUI : MonoBehaviour
     public void SetProgress(float value)
     {
         fillImage.fillAmount = value;
-
-        // Opacity mengikuti progress
         canvasGroup.alpha = value;
     }
 
